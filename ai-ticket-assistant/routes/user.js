@@ -5,14 +5,18 @@ import {
   signup,
   updateUser,
   logout,
+  getDashboardStats,
 } from "../controllers/user.js";
 
-import { authenticate } from "../middlewares/auth.js";
+import { authenticate, requireAdmin } from "../middlewares/auth.js";
 const router = express.Router();
 
-router.post("/update-user", authenticate, updateUser);
-router.get("/users", authenticate, getUsers);
+// Admin-only routes
+router.post("/update-user", authenticate, requireAdmin, updateUser);
+router.get("/users", authenticate, requireAdmin, getUsers);
+router.get("/dashboard-stats", authenticate, requireAdmin, getDashboardStats);
 
+// Public routes
 router.post("/signup", signup);
 router.post("/login", login);
 router.post("/logout", logout);

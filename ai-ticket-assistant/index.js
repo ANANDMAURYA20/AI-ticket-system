@@ -28,6 +28,10 @@ app.use(
   })
 );
 
+app.get("/", (req, res) => {
+  res.send("AI Ticketing System API is running...");
+});
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {

@@ -18,13 +18,11 @@ Your job is to:
 IMPORTANT:
 - Respond with *only* valid raw JSON.
 - Do NOT include markdown, code fences, comments, or any extra formatting.
-- The format must be a raw JSON object.
-
-Repeat: Do not wrap your output in markdown or code fences.`,
+- The format must be a raw JSON object.`,
   });
 
-  const response =
-    await supportAgent.run(`You are a ticket triage agent. Only return a strict JSON object with no extra text, headers, or markdown.
+  const response = await supportAgent.run(
+    `You are a ticket triage agent. Only return a strict JSON object with no extra text, headers, or markdown.
         
 Analyze the following support ticket and provide a JSON object with:
 
@@ -33,7 +31,7 @@ Analyze the following support ticket and provide a JSON object with:
 - helpfulNotes: A detailed technical explanation that a moderator can use to solve this issue. Include useful external links or resources if possible.
 - relatedSkills: An array of relevant skills required to solve the issue (e.g., ["React", "MongoDB"]).
 
-Respond ONLY in this JSON format and do not include any other text or markdown in the answer:
+Respond ONLY in this JSON format and do not include any other text:
 
 {
 "summary": "Short summary of the ticket",
@@ -47,17 +45,41 @@ Respond ONLY in this JSON format and do not include any other text or markdown i
 Ticket information:
 
 - Title: ${ticket.title}
-- Description: ${ticket.description}`);
+- Description: ${ticket.description}`
+  );
 
-  const raw = response.output[0].context;
+  console.log("AI Response:", response);
+
+  // Pull raw text (may vary by SDK version, check logs)
+  let raw =
+    response.output?.[0]?.output_text ||
+    response.output?.[0]?.content ||
+    response.output_text ||
+    "";
+
+  console.log("AI Raw Output:", raw);
+
+  // Strip ```json fences if present
+  raw = raw.replace(/```json\s*([\s\S]*?)\s*```/i, "$1").trim();
 
   try {
-    const match = raw.match(/```json\s*([\s\S]*?)\s*```/i);
-    const jsonString = match ? match[1] : raw.trim();
-    return JSON.parse(jsonString);
+    const json = JSON.parse(raw);
+    console.log("✅ Parsed JSON:", json);
+
+    // Validate schema
+    if (
+      !json.summary ||
+      !json.priority ||
+      !json.helpfulNotes ||
+      !Array.isArray(json.relatedSkills)
+    ) {
+      throw new Error("Missing one or more required fields in AI response");
+    }
+
+    return json;
   } catch (e) {
-    console.log("Failed to parse JSON from AI response" + e.message);
-    return null; // watch out for this
+    console.error("❌ Failed to parse AI JSON:", e.message, raw);
+    return null;
   }
 };
 

@@ -21,6 +21,7 @@ export default function TicketDetailsPage() {
           }
         );
         const data = await res.json();
+        console.log(data);
         if (res.ok) {
           setTicket(data.ticket);
         } else {
@@ -38,8 +39,14 @@ export default function TicketDetailsPage() {
   }, [id]);
 
   if (loading)
-    return <div className="text-center mt-10">Loading ticket details...</div>;
-  if (!ticket) return <div className="text-center mt-10">Ticket not found</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 border-solid"></div>
+      </div>
+    );
+
+  if (!ticket)
+    return <div className="text-center mt-10">Ticket not found</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-4">
